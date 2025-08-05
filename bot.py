@@ -61,16 +61,22 @@ async def on_message(message):
 
     if message.content == "w":
         await gifmessage.edit(content=gifmessage.content.replace("i", "wi", 1))
+        await message.delete()
     elif message.content == "a":
         await gifmessage.edit(content=gifmessage.content.replace("i", "ai", 1))
+        await message.delete()
     elif message.content == "s":
         await gifmessage.edit(content=gifmessage.content.replace("i", "si", 1))
+        await message.delete()
     elif message.content == "d":
         await gifmessage.edit(content=gifmessage.content.replace("i", "di", 1))
+        await message.delete()
     elif message.content == "e":
         await gifmessage.edit(content=gifmessage.content.replace("i", "ei", 1))
+        await message.delete()
     elif message.content == "q":
         await gifmessage.edit(content=gifmessage.content.replace("i", "qi", 1))
+        await message.delete()
 
 
 bot.run(APP_TOKEN)
