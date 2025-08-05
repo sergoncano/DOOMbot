@@ -1,82 +1,97 @@
 import os
-
 import discord
 import dotenv
 
-dotenv.load_dotenv()
-APP_TOKEN = str(os.getenv("APP_TOKEN"))
+class BotInstance:
+    gifmessage = None
+    player = None
+    channel = None
 
-DOOM_GIF_URL = "https://doom.p2r3.com/i.webp"
+    def __init__(self, message):
+        self.player = message.author
+        self.channel = message.channel
 
-intents = discord.Intents._from_value(32768)
-
-bot = discord.Bot(intents=discord.Intents.all())
-
-currentplayer = None
-gifmessage = None
-lookForMessages = False
-
-
-@bot.event
-async def on_ready():
-    print(f"{bot.user} is running")
-
-
-@bot.event
-async def on_message(message):
-    print(f"Recieved {message.content}")
-    global currentplayer
-    global lookForMessages
-
-    if lookForMessages:
-        print("Found my own message")
-        global gifmessage
-        gifmessage = message
-        lookForMessages = False
-        return
-
-    if message.author == bot.user:
-        return
-
-    if message.content == "doom init" and currentplayer is None:
-        currentplayer = message.author
-        lookForMessages = True
-        await message.channel.send(
+    async def initialize_gif(self):
+        self.gifmessage = await self.channel.send(
             DOOM_GIF_URL
-            + f"\nCurrent player: {message.author.name}"
+            + f"\nCurrent player: {self.player.name}"
             + '\nuse "doom end" to exit'
         )
 
-    if (
-        message.author == currentplayer
-        and message.content == "doom end"
-        and currentplayer is not None
-    ):
-        currentplayer = None
-        gifmessage = None
-        return
+    async def delete_self(self):
+        await self.gifmessage.delete()
+        del players[self.player.id]
 
-    if currentplayer is None or message.author != currentplayer:
-        return
+    async def on_message(self, message):
+        print(f"Recieved {message.content}")
 
-    if message.content == "w":
-        await gifmessage.edit(content=gifmessage.content.replace("i", "wi", 1))
-        await message.delete()
-    elif message.content == "a":
-        await gifmessage.edit(content=gifmessage.content.replace("i", "ai", 1))
-        await message.delete()
-    elif message.content == "s":
-        await gifmessage.edit(content=gifmessage.content.replace("i", "si", 1))
-        await message.delete()
-    elif message.content == "d":
-        await gifmessage.edit(content=gifmessage.content.replace("i", "di", 1))
-        await message.delete()
-    elif message.content == "e":
-        await gifmessage.edit(content=gifmessage.content.replace("i", "ei", 1))
-        await message.delete()
-    elif message.content == "q":
-        await gifmessage.edit(content=gifmessage.content.replace("i", "qi", 1))
-        await message.delete()
+        if message.author == bot.user:
+            return
 
+        if message.author == self.player and message.content == "doom end":
+            await self.delete_self()
+            return
 
-bot.run(APP_TOKEN)
+        if message.author != self.player:
+            return
+
+        if message.content == "w":
+            self.gifmessage = await self.gifmessage.edit(
+                content=self.gifmessage.content.replace("i", "wi", 1)
+            )
+            await message.delete()
+        elif message.content == "a":
+            self.gifmessage = await self.gifmessage.edit(
+                content=self.gifmessage.content.replace("i", "ai", 1)
+            )
+            await message.delete()
+        elif message.content == "s":
+            self.gifmessage = await self.gifmessage.edit(
+                content=self.gifmessage.content.replace("i", "si", 1)
+            )
+            await message.delete()
+        elif message.content == "d":
+            self.gifmessage = await self.gifmessage.edit(
+                content=self.gifmessage.content.replace("i", "di", 1)
+            )
+            await message.delete()
+        elif message.content == "e":
+            self.gifmessage = await self.gifmessage.edit(
+                content=self.gifmessage.content.replace("i", "ei", 1)
+            )
+            await message.delete()
+        elif message.content == "q":
+            self.gifmessage = await self.gifmessage.edit(
+                content=self.gifmessage.content.replace("i", "qi", 1)
+            )
+            await message.delete()
+
+if __name__ == "__main__":
+    dotenv.load_dotenv()
+    APP_TOKEN = str(os.getenv("APP_TOKEN"))
+
+    DOOM_GIF_URL = "https://doom.p2r3.com/i.webp"
+
+    intents = discord.Intents._from_value(32768)
+
+    bot = discord.Bot(intents=discord.Intents.all())
+
+    players = {}
+
+    @bot.event
+    async def on_ready():
+        print(f"{bot.user} is running")
+
+    @bot.event
+    async def on_message(message):
+        id = message.author.id
+        if message.content == "doom init":
+            if id in players:
+                return
+            players[id] = BotInstance(message)
+            await players[id].initialize_gif()
+        else:
+            if id in players:
+                await players[id].on_message(message)
+
+    bot.run(APP_TOKEN)
