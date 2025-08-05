@@ -1,4 +1,6 @@
 import os
+import re
+
 import discord
 import dotenv
 
@@ -12,9 +14,7 @@ class BotInstance:
         self.channel = message.channel
 
     async def initialize(self):
-        self.gifmessage = await self.channel.send(
-            DOOM_GIF_URL
-        )
+        self.gifmessage = await self.channel.send(DOOM_GIF_URL)
 
     async def doom_exit(self):
         await self.gifmessage.delete()
@@ -22,11 +22,11 @@ class BotInstance:
 
     @staticmethod
     async def doom_help(channel):
-        help_message = '''
+        help_message = """
 **Commands**
-**Doom init**: start a DOOM game
-**Doom back**: go back to the previous state of the game
-**Doom exit**: exit your ongoing doom game
+**Doom init**: start a DOOM game.
+**Doom back**: go back to the previous state of the game. Does not revert multiple actions if they were chained in one message.
+**Doom exit**: exit your ongoing doom game.
 **Game controls**:
     -W: Move forth
     -S: Move back
@@ -34,22 +34,30 @@ class BotInstance:
     -D: Move right
     -Q: Fire weapon
     -E: Open door
-All commands are case insensitive'''
+All commands are case insensitive, controls can be concatenated (E.g.: 'waq' to go forward, turn left and shoot)."""
         await channel.send(help_message)
 
     async def doom_back(self):
         if self.gifmessage.content[-7] == "/":
             return
-        self.gifmessage = await self.gifmessage.edit(self.gifmessage.content[:-7] + self.gifmessage.content[-6:])
+        self.gifmessage = await self.gifmessage.edit(
+            self.gifmessage.content[:-7] + self.gifmessage.content[-6:]
+        )
 
     async def doom_control(self, message):
-        controls = ["w","a","s","d","e","q"]
-        for key in controls:
-            if message.content == key:
-                self.gifmessage = await self.gifmessage.edit(
-                    content=self.gifmessage.content.replace("i", key + "i", 1)
-                )
-                await message.delete()
+        text = message.content.lower()
+        controls = "wasdeq"
+        regex_text = "[^" + controls + "]"
+        regex = re.compile(regex_text)
+
+        if re.match(regex, text) is not None:
+            # This is not a control input
+            return
+
+        self.gifmessage = await self.gifmessage.edit(
+            content=self.gifmessage.content.replace("i", text + "i", 1)
+        )
+        await message.delete()
 
     async def doom_command(self, message):
         text = message.content.lower()
@@ -73,7 +81,6 @@ All commands are case insensitive'''
         if message.author == self.player:
             await self.doom_control(message)
 
-        
 
 if __name__ == "__main__":
     dotenv.load_dotenv()
