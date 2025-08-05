@@ -27,6 +27,7 @@ class BotInstance:
 **Doom init**: start a DOOM game.
 **Doom back**: go back to the previous state of the game. Does not revert multiple actions if they were chained in one message.
 **Doom exit**: exit your ongoing doom game.
+**Doom front**: the game is brought to the last message.
 **Game controls**:
     -W: Move forth
     -S: Move back
@@ -59,6 +60,12 @@ All commands are case insensitive, controls can be concatenated (E.g.: 'waq' to 
         )
         await message.delete()
 
+    async def doom_front(self):
+        content = self.gifmessage.content
+        channel = self.gifmessage.channel
+        await self.gifmessage.delete()
+        self.gifmessage = await channel.send(content)
+
     async def doom_command(self, message):
         text = message.content.lower()
         if text == "doom exit":
@@ -66,6 +73,9 @@ All commands are case insensitive, controls can be concatenated (E.g.: 'waq' to 
             await message.delete()
         elif text == "doom back":
             await self.doom_back()
+            await message.delete()
+        elif text == "doom front":
+            await self.doom_front()
             await message.delete()
 
     async def on_message(self, message):
