@@ -35,7 +35,8 @@ class BotInstance:
     -D: Move right
     -Q: Fire weapon
     -E: Open door
-All commands are case insensitive, controls can be concatenated (E.g.: 'waq' to go forward, turn left and shoot)."""
+All commands and controls are case insensitive.
+Controls can be concatenated (E.g.: 'waq' to go forward, turn left and shoot), however doing this is not recommended since the game is more likely to crash."""
         await channel.send(help_message)
 
     async def doom_back(self):
