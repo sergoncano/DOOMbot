@@ -80,8 +80,6 @@ Controls can be concatenated (E.g.: 'waq' to go forward, turn left and shoot), h
             await message.delete()
 
     async def on_message(self, message):
-        print(f"Recieved {message.content}")
-
         if message.author == bot.user:
             return
 
@@ -107,6 +105,12 @@ if __name__ == "__main__":
     @bot.event
     async def on_ready():
         print(f"{bot.user} is running")
+
+    @bot.event
+    async def on_guild_join(self, guild):
+        default_channel = guild.system_channel
+        if channel.permissions_for(guild.me).send_messages:
+            await channel.send('Use "Doom help" for insight on how to play the game')
 
     @bot.event
     async def on_message(message):
