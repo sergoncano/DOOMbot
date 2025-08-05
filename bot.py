@@ -51,7 +51,7 @@ All commands are case insensitive, controls can be concatenated (E.g.: 'waq' to 
         regex_text = "[^" + controls + "]"
         regex = re.compile(regex_text)
 
-        if re.match(regex, text) is not None:
+        if re.search(regex, text):
             # This is not a control input
             return
 
@@ -90,7 +90,6 @@ All commands are case insensitive, controls can be concatenated (E.g.: 'waq' to 
 
         if message.author == self.player:
             await self.doom_control(message)
-
 
 if __name__ == "__main__":
     dotenv.load_dotenv()
